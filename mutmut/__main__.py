@@ -37,6 +37,7 @@ from mutmut import (
 from mutmut.cache import (
     create_html_report,
     cached_hash_of_tests,
+    query,
 )
 from mutmut.cache import print_result_cache, \
     hash_of_tests, \
@@ -159,9 +160,16 @@ def main(command, argument, argument2, paths_to_mutate, backup, runner, tests_di
     if use_coverage and use_patch_file:
         raise click.BadArgumentUsage("You can't combine --use-coverage and --use-patch")
 
-    valid_commands = ['run', 'generate', 'results', 'apply', 'show', 'junitxml', 'html']
+    valid_commands = ['run', 'generate', 'query', 'results', 'apply', 'show', 'junitxml', 'html']
     if command not in valid_commands:
         raise click.BadArgumentUsage('{} is not a valid command, must be one of {}'.format(command, ', '.join(valid_commands)))
+
+    if command == 'query':
+        print('Command was query; running custom database query.')
+        results = query()
+        print(results)
+        print('Command was query; finished running custom database query.')
+        return 0
 
     if command == 'results' and argument:
         raise click.BadArgumentUsage('The {} command takes no arguments'.format(command))

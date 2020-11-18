@@ -89,6 +89,28 @@ def init_db(f):
     return wrapper
 
 
+@init_db
+@db_session
+def query():
+    return get_cached_mutations_by_file()
+
+
+@init_db
+@db_session
+def get_cached_mutations_by_file():
+    mutations_by_file = dict()
+    filenames = select(sf.filename for sf in SourceFile)
+    for filename in filenames:
+        mutant_data = select(
+            (m.line.line, m.index, m.line.line_number)
+            for m in Mutant
+            if m.line.sourcefile.filename == filename
+        )
+        mutations_by_file[filename] = [RelativeMutationID(line=line, index=index, line_number=line_number, filename=filename)
+            for line, index, line_number in mutant_data]
+    return mutations_by_file
+
+
 def hash_of(filename):
     with open(filename, 'rb') as f:
         m = hashlib.sha256()
