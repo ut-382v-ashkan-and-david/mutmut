@@ -118,6 +118,8 @@ def climain(command, argument, argument2, paths_to_mutate, backup, runner, tests
 commands:\n
     run [mutation id]\n
         Runs mutmut. You probably want to start with just trying this. If you supply a mutation ID mutmut will check just this mutant.\n
+    generate\n
+        Generate mutants and store them in the cache without running them.\n
     results\n
         Print the results.\n
     apply [mutation id]\n
@@ -157,7 +159,7 @@ def main(command, argument, argument2, paths_to_mutate, backup, runner, tests_di
     if use_coverage and use_patch_file:
         raise click.BadArgumentUsage("You can't combine --use-coverage and --use-patch")
 
-    valid_commands = ['run', 'results', 'apply', 'show', 'junitxml', 'html']
+    valid_commands = ['run', 'generate', 'results', 'apply', 'show', 'junitxml', 'html']
     if command not in valid_commands:
         raise click.BadArgumentUsage('{} is not a valid command, must be one of {}'.format(command, ', '.join(valid_commands)))
 
@@ -249,12 +251,16 @@ Legend for output:
         except ImportError:
             runner = 'python -m unittest'
 
-    baseline_time_elapsed = time_test_suite(
-        swallow_output=not swallow_output,
-        test_command=runner,
-        using_testmon=using_testmon,
-        current_hash_of_tests=current_hash_of_tests,
-    )
+    if command == 'generate':
+        print("Command was generate; skipping baseline test run.")
+        baseline_time_elapsed = None
+    else:
+        baseline_time_elapsed = time_test_suite(
+            swallow_output=not swallow_output,
+            test_command=runner,
+            using_testmon=using_testmon,
+            current_hash_of_tests=current_hash_of_tests,
+        )
 
     if hasattr(mutmut_config, 'init'):
         mutmut_config.init()
@@ -274,7 +280,7 @@ Legend for output:
             assert use_patch_file
             covered_lines_by_filename = read_patch_data(use_patch_file)
 
-    if command != 'run':
+    if command not in ['run', 'generate']:
         raise click.BadArgumentUsage("Invalid command {}".format(command))
 
     mutations_by_file = {}
@@ -304,6 +310,10 @@ Legend for output:
     )
 
     parse_run_argument(argument, config, dict_synonyms, mutations_by_file, paths_to_exclude, paths_to_mutate, tests_dirs)
+
+    if command == 'generate':
+        print('Command was generate; finished generating mutants, stopping before running.')
+        return 0
 
     config.total = sum(len(mutations) for mutations in mutations_by_file.values())
 
