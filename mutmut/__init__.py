@@ -605,7 +605,11 @@ def mutate_node(node, context):
         for key, value in sorted(mutation.items()):
             old = getattr(node, key)
             if context.exclude_line():
-                continue
+                if context.running:
+                    print(f'Skipping {mutation_id} (not covered)')
+                    raise SkipException
+                else:
+                    continue
 
             new = value(
                 context=context,
@@ -712,6 +716,7 @@ def queue_mutants(*, progress, config, mutants_queue, mutations_by_file):
                     source=source,
                     index=index,
                 )
+                context.running = True
                 mutants_queue.put(('mutant', context))
                 index += 1
     finally:
