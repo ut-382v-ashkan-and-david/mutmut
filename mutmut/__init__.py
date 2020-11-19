@@ -35,12 +35,6 @@ from parso.python.tree import Name, Number, Keyword
 __version__ = '2.1.0'
 
 
-try:
-    import mutmut_config
-except ImportError:
-    mutmut_config = None
-
-
 class RelativeMutationID(object):
     def __init__(self, line, index, line_number, filename=None):
         self.line = line
@@ -472,6 +466,13 @@ def should_exclude(context, config):
     return False
 
 
+try:
+    import mutmut_config
+except ImportError as e:
+    print(e)
+    mutmut_config = None
+
+
 class Context(object):
     def __init__(self, source=None, mutation_id=ALL, dict_synonyms=None, filename=None, config=None, index=0):
         self.index = index
@@ -605,11 +606,7 @@ def mutate_node(node, context):
         for key, value in sorted(mutation.items()):
             old = getattr(node, key)
             if context.exclude_line():
-                if getattr(context, 'running', None):
-                    print(f'Skipping {context.mutation_id} (not covered)')
-                    raise SkipException
-                else:
-                    continue
+                continue
 
             new = value(
                 context=context,
@@ -716,7 +713,6 @@ def queue_mutants(*, progress, config, mutants_queue, mutations_by_file):
                     source=source,
                     index=index,
                 )
-                context.running = True
                 mutants_queue.put(('mutant', context))
                 index += 1
     finally:

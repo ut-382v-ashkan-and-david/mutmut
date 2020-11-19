@@ -92,7 +92,7 @@ def init_db(f):
 @init_db
 @db_session
 def query():
-    filename = 'pyrsa/vis/colors.py'
+    filename = 'pyrsa/util/vis_utils.py'
     mutant_data = select(
         (m.line.line, m.index, m.line.line_number)
         for m in Mutant
