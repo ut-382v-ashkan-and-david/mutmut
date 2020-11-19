@@ -38,6 +38,7 @@ from mutmut.cache import (
     create_html_report,
     cached_hash_of_tests,
     query,
+    get_cached_mutations_by_file,
 )
 from mutmut.cache import print_result_cache, \
     hash_of_tests, \
@@ -121,6 +122,8 @@ commands:\n
         Runs mutmut. You probably want to start with just trying this. If you supply a mutation ID mutmut will check just this mutant.\n
     generate\n
         Generate mutants and store them in the cache without running them.\n
+    run_only\n
+        Runs mutmut using mutants from the existing cache.\n
     results\n
         Print the results.\n
     apply [mutation id]\n
@@ -160,7 +163,7 @@ def main(command, argument, argument2, paths_to_mutate, backup, runner, tests_di
     if use_coverage and use_patch_file:
         raise click.BadArgumentUsage("You can't combine --use-coverage and --use-patch")
 
-    valid_commands = ['run', 'generate', 'query', 'results', 'apply', 'show', 'junitxml', 'html']
+    valid_commands = ['run', 'generate', 'run_only', 'query', 'results', 'apply', 'show', 'junitxml', 'html']
     if command not in valid_commands:
         raise click.BadArgumentUsage('{} is not a valid command, must be one of {}'.format(command, ', '.join(valid_commands)))
 
@@ -288,7 +291,7 @@ Legend for output:
             assert use_patch_file
             covered_lines_by_filename = read_patch_data(use_patch_file)
 
-    if command not in ['run', 'generate']:
+    if command not in ['run', 'generate', 'run_only']:
         raise click.BadArgumentUsage("Invalid command {}".format(command))
 
     mutations_by_file = {}
@@ -317,7 +320,10 @@ Legend for output:
         paths_to_mutate=paths_to_mutate,
     )
 
-    parse_run_argument(argument, config, dict_synonyms, mutations_by_file, paths_to_exclude, paths_to_mutate, tests_dirs)
+    if command != 'run_only':
+        parse_run_argument(argument, config, dict_synonyms, mutations_by_file, paths_to_exclude, paths_to_mutate, tests_dirs)
+    else:
+        mutations_by_file = get_cached_mutations_by_file()
 
     if command == 'generate':
         print('Command was generate; finished generating mutants, stopping before running.')
