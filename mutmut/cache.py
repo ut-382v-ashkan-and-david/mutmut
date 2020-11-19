@@ -92,7 +92,15 @@ def init_db(f):
 @init_db
 @db_session
 def query():
-    return reset_run_status()
+    filename = 'pyrsa/vis/colors.py'
+    mutant_data = select(
+        (m.line.line, m.index, m.line.line_number)
+        for m in Mutant
+        if m.line.sourcefile.filename == filename
+    )
+    mutation_ids = [RelativeMutationID(line=line, index=index, line_number=line_number, filename=filename) for line, index, line_number in mutant_data]
+    for mutant in mutation_ids:
+        print(mutant)
 
 
 @init_db

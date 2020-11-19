@@ -331,6 +331,12 @@ Legend for output:
         parse_run_argument(argument, config, dict_synonyms, mutations_by_file, paths_to_exclude, paths_to_mutate, tests_dirs)
     else:
         mutations_by_file = get_cached_mutations_by_file()
+        if argument is None:
+            for path in paths_to_mutate:
+                for filename in python_source_files(path, tests_dirs, paths_to_exclude):
+                    if filename.startswith('test_') or filename.endswith('__tests.py'):
+                        continue
+                    update_line_numbers(filename)
 
     if command == 'generate':
         print('Command was generate; finished generating mutants, stopping before running.')

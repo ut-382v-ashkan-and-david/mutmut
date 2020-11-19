@@ -605,8 +605,8 @@ def mutate_node(node, context):
         for key, value in sorted(mutation.items()):
             old = getattr(node, key)
             if context.exclude_line():
-                if context.running:
-                    print(f'Skipping {mutation_id} (not covered)')
+                if getattr(context, 'running', None):
+                    print(f'Skipping {context.mutation_id} (not covered)')
                     raise SkipException
                 else:
                     continue
