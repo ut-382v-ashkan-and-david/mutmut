@@ -39,6 +39,7 @@ from mutmut.cache import (
     cached_hash_of_tests,
     query,
     get_cached_mutations_by_file,
+    reset_run_status,
 )
 from mutmut.cache import print_result_cache, \
     hash_of_tests, \
@@ -163,7 +164,7 @@ def main(command, argument, argument2, paths_to_mutate, backup, runner, tests_di
     if use_coverage and use_patch_file:
         raise click.BadArgumentUsage("You can't combine --use-coverage and --use-patch")
 
-    valid_commands = ['run', 'generate', 'run_only', 'query', 'results', 'apply', 'show', 'junitxml', 'html']
+    valid_commands = ['run', 'generate', 'run_only', 'reset', 'query', 'results', 'apply', 'show', 'junitxml', 'html']
     if command not in valid_commands:
         raise click.BadArgumentUsage('{} is not a valid command, must be one of {}'.format(command, ', '.join(valid_commands)))
 
@@ -172,6 +173,12 @@ def main(command, argument, argument2, paths_to_mutate, backup, runner, tests_di
         results = query()
         print(results)
         print('Command was query; finished running custom database query.')
+        return 0
+
+    if command == 'reset':
+        print('Command was reset; resetting mutant statuses and baseline time.')
+        num_mutants = reset_run_status()
+        print(f'Reset status of all {num_mutants} mutants in cache.')
         return 0
 
     if command == 'results' and argument:

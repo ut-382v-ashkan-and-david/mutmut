@@ -92,7 +92,18 @@ def init_db(f):
 @init_db
 @db_session
 def query():
-    return get_cached_mutations_by_file()
+    return reset_run_status()
+
+
+@init_db
+@db_session
+def reset_run_status():
+    MiscData.get(key='baseline_time_elapsed').delete()
+    count = 0
+    for mutant in select(m for m in Mutant):
+        mutant.status = UNTESTED
+        count += 1
+    return count
 
 
 @init_db
