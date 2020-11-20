@@ -451,18 +451,21 @@ mutations_by_type = {
 # TODO: detect regexes and mutate them in nasty ways? Maybe mutate all strings as if they are regexes
 
 
-def should_exclude(context, config):
+def should_exclude(context, config, alt_covered_lines=None):
     if config is None or config.covered_lines_by_filename is None:
         return False
 
-    try:
-        covered_lines = config.covered_lines_by_filename[context.filename]
-    except KeyError:
-        if config.coverage_data is not None:
-            covered_lines = config.coverage_data.get(os.path.abspath(context.filename))
-            config.covered_lines_by_filename[context.filename] = covered_lines
-        else:
-            covered_lines = None
+    if alt_covered_lines is not None:
+        covered_lines = alt_covered_lines
+    else:
+        try:
+            covered_lines = config.covered_lines_by_filename[context.filename]
+        except KeyError:
+            if config.coverage_data is not None:
+                covered_lines = config.coverage_data.get(os.path.abspath(context.filename))
+                config.covered_lines_by_filename[context.filename] = covered_lines
+            else:
+                covered_lines = None
 
     if covered_lines is None:
         return True
@@ -781,20 +784,28 @@ def run_mutation(context: Context, callback) -> str:
             backup=True,
             context=context
         )
-        start = time()
-        try:
-            survived = tests_pass(config=config, callback=callback)
-        except TimeoutError:
-            return BAD_TIMEOUT
+        reruns = 0
+        while reruns <= 16:
+            start = time()
+            try:
+                survived = tests_pass(config=config, callback=callback)
+            except TimeoutError:
+                return BAD_TIMEOUT
 
-        time_elapsed = time() - start
-        if not survived and time_elapsed > config.test_time_base + (config.baseline_time_elapsed * config.test_time_multipler):
-            return OK_SUSPICIOUS
+            time_elapsed = time() - start
+            if not survived and time_elapsed > config.test_time_base + (config.baseline_time_elapsed * config.test_time_multipler):
+                return OK_SUSPICIOUS
 
-        if survived:
-            return BAD_SURVIVED
-        else:
-            return OK_KILLED
+            if 
+            generated_coverage = read_coverage_data()
+            cove
+
+            if survived:
+                return BAD_SURVIVED
+            else:
+                return OK_KILLED
+
+            reruns += 1
     except SkipException:
         return SKIPPED
 
@@ -810,7 +821,7 @@ def run_mutation(context: Context, callback) -> str:
 class Config(object):
     def __init__(self, swallow_output, test_command, covered_lines_by_filename,
                  baseline_time_elapsed, test_time_multiplier, test_time_base,
-                 backup, dict_synonyms, total, using_testmon, cache_only,
+                 backup, dict_synonyms, total, using_testmon, with_reruns, cache_only,
                  tests_dirs, hash_of_tests, pre_mutation, post_mutation,
                  coverage_data, paths_to_mutate):
         self.swallow_output = swallow_output
@@ -823,6 +834,7 @@ class Config(object):
         self.dict_synonyms = dict_synonyms
         self.total = total
         self.using_testmon = using_testmon
+        self.with_reruns = with_reruns
         self.cache_only = cache_only
         self.tests_dirs = tests_dirs
         self.hash_of_tests = hash_of_tests
@@ -1169,7 +1181,7 @@ def run_mutation_tests(config, progress, mutations_by_file):
             progress.print()
 
 
-def read_coverage_data():
+def read_coverage_data(path='.coverage'):
     """
     :rtype: CoverageData or None
     """
@@ -1178,7 +1190,7 @@ def read_coverage_data():
         from coverage import Coverage
     except ImportError as e:
         raise ImportError('The --use-coverage feature requires the coverage library. Run "pip install --force-reinstall mutmut[coverage]"') from e
-    cov = Coverage('.coverage')
+    cov = Coverage(path)
     cov.load()
     data = cov.get_data()
     return {filepath: data.lines(filepath) for filepath in data.measured_files()}

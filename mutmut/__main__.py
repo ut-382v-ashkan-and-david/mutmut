@@ -97,6 +97,7 @@ DEFAULT_RUNNER = 'python -m pytest -x --assert=plain'
 @click.option('-b', '--test-time-base', default=0.0, type=float)
 @click.option('-s', '--swallow-output', help='turn off output capture', is_flag=True)
 @click.option('--dict-synonyms')
+@click.option('--with-reruns', is_flag=True, default=False)
 @click.option('--cache-only', is_flag=True, default=False)
 @click.option('--version', is_flag=True, default=False)
 @click.option('--suspicious-policy', type=click.Choice(['ignore', 'skipped', 'error', 'failure']), default='ignore')
@@ -114,7 +115,7 @@ DEFAULT_RUNNER = 'python -m pytest -x --assert=plain'
 )
 def climain(command, argument, argument2, paths_to_mutate, backup, runner, tests_dir,
             test_time_multiplier, test_time_base,
-            swallow_output, use_coverage, dict_synonyms, cache_only, version,
+            swallow_output, use_coverage, dict_synonyms, with_reruns, cache_only, version,
             suspicious_policy, untested_policy, pre_mutation, post_mutation,
             use_patch_file, paths_to_exclude):
     """
@@ -142,14 +143,14 @@ commands:\n
         test_time_multiplier = 0.0
     sys.exit(main(command, argument, argument2, paths_to_mutate, backup, runner,
                   tests_dir, test_time_multiplier, test_time_base,
-                  swallow_output, use_coverage, dict_synonyms, cache_only,
+                  swallow_output, use_coverage, dict_synonyms, with_reruns, cache_only,
                   version, suspicious_policy, untested_policy, pre_mutation,
                   post_mutation, use_patch_file, paths_to_exclude))
 
 
 def main(command, argument, argument2, paths_to_mutate, backup, runner, tests_dir,
          test_time_multiplier, test_time_base,
-         swallow_output, use_coverage, dict_synonyms, cache_only, version,
+         swallow_output, use_coverage, dict_synonyms, with_reruns, cache_only, version,
          suspicious_policy, untested_policy, pre_mutation, post_mutation,
          use_patch_file, paths_to_exclude):
     """return exit code, after performing an mutation test run.
@@ -317,6 +318,7 @@ Legend for output:
         backup=backup,
         dict_synonyms=dict_synonyms,
         using_testmon=using_testmon,
+        with_reruns=with_reruns,
         cache_only=cache_only,
         tests_dirs=tests_dirs,
         hash_of_tests=current_hash_of_tests,
