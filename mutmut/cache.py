@@ -16,7 +16,7 @@ from pony.orm import Database, Required, db_session, Set, Optional, select, \
     PrimaryKey, RowNotFound, ERDiagramError, OperationalError
 
 from mutmut import BAD_TIMEOUT, OK_SUSPICIOUS, BAD_SURVIVED, UNTESTED, \
-    OK_KILLED, UNKNOWN, UNKNOWN_TO_KILLED, UNKNOWN_TO_SURVIVED, RelativeMutationID, Context, mutate
+    OK_KILLED, SKIPPED, UNKNOWN, UNKNOWN_TO_KILLED, UNKNOWN_TO_SURVIVED, RelativeMutationID, Context, mutate
 
 db = Database()
 
@@ -92,15 +92,15 @@ def init_db(f):
 @init_db
 @db_session
 def query():
-    filename = 'pyrsa/util/vis_utils.py'
-    mutant_data = select(
-        (m.line.line, m.index, m.line.line_number)
-        for m in Mutant
-        if m.line.sourcefile.filename == filename
-    )
-    mutation_ids = [RelativeMutationID(line=line, index=index, line_number=line_number, filename=filename) for line, index, line_number in mutant_data]
-    for mutant in mutation_ids:
-        print(mutant)
+    return get_unskipped_statuses()
+
+
+@init_db
+@db_session
+def get_unskipped_statuses():
+    mutant_data = select((m.id, m.status) for m in Mutant if m.status != SKIPPED)
+    mutant_dict = {m_id: status for m_id, status in mutant_data}
+    return mutant_dict
 
 
 @init_db

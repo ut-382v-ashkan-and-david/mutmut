@@ -172,7 +172,8 @@ def main(command, argument, argument2, paths_to_mutate, backup, runner, tests_di
     if command == 'query':
         print('Command was query; running custom database query.')
         results = query()
-        print(results)
+        from pprint import pprint
+        pprint(results)
         print('Command was query; finished running custom database query.')
         return 0
 
