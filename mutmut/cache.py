@@ -99,8 +99,17 @@ def query():
 @db_session
 def get_unskipped_statuses():
     mutant_data = select((m.id, m.status) for m in Mutant if m.status != SKIPPED)
-    mutant_dict = {m_id: status for m_id, status in mutant_data}
-    return mutant_dict
+    status_codes = {
+        UNTESTED: 0,
+        OK_KILLED: 1,
+        BAD_SURVIVED: 2,
+        OK_SUSPICIOUS: 3,
+        BAD_TIMEOUT: 4,
+        UNKNOWN: 5,
+        UNKNOWN_TO_KILLED: 6,
+        UNKNOWN_TO_SURVIVED: 7,
+    }
+    return {m_id: status_codes[status] for m_id, status in mutant_data}
 
 
 @init_db
