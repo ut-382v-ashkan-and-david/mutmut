@@ -16,7 +16,7 @@ from pony.orm import Database, Required, db_session, Set, Optional, select, \
     PrimaryKey, RowNotFound, ERDiagramError, OperationalError
 
 from mutmut import BAD_TIMEOUT, OK_SUSPICIOUS, BAD_SURVIVED, UNTESTED, \
-    OK_KILLED, RelativeMutationID, Context, mutate
+    OK_KILLED, UNKNOWN, UNKNOWN_TO_KILLED, UNKNOWN_TO_SURVIVED, RelativeMutationID, Context, mutate
 
 db = Database()
 
@@ -223,6 +223,9 @@ def print_result_cache(show_diffs=False, dict_synonyms=None, print_only_filename
     print_stuff('Timed out ⏰', select(x for x in Mutant if x.status == BAD_TIMEOUT))
     print_stuff('Suspicious 🤔', select(x for x in Mutant if x.status == OK_SUSPICIOUS))
     print_stuff('Survived 🙁', select(x for x in Mutant if x.status == BAD_SURVIVED))
+    print_stuff('Unknown', select(x for x in Mutant if x.status == UNKNOWN))
+    print_stuff('Unknown then Killed', select(x for x in Mutant if x.status == UNKNOWN_TO_KILLED))
+    print_stuff('Unknown then Survived', select(x for x in Mutant if x.status == UNKNOWN_TO_SURVIVED))
     print_stuff('Untested/skipped', select(x for x in Mutant if x.status == UNTESTED))
 
 

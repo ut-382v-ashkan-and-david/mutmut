@@ -180,6 +180,9 @@ OK_SUSPICIOUS = 'ok_suspicious'
 BAD_TIMEOUT = 'bad_timeout'
 BAD_SURVIVED = 'bad_survived'
 SKIPPED = 'skipped'
+UNKNOWN = 'unknown'
+UNKNOWN_TO_KILLED = 'unknown_to_killed'
+UNKNOWN_TO_SURVIVED = 'unknown_to_survived'
 
 
 mutant_statuses = [
@@ -189,6 +192,9 @@ mutant_statuses = [
     BAD_TIMEOUT,
     BAD_SURVIVED,
     SKIPPED,
+    UNKNOWN,
+    UNKNOWN_TO_KILLED,
+    UNKNOWN_TO_SURVIVED,
 ]
 
 
@@ -919,9 +925,12 @@ class Progress(object):
         self.surviving_mutants = 0
         self.surviving_mutants_timeout = 0
         self.suspicious_mutants = 0
+        self.unknown_mutants = 0
+        self.unknown_to_killed_mutants = 0
+        self.unknown_to_survived_mutants = 0
 
     def print(self):
-        print_status('{}/{}  🎉 {}  ⏰ {}  🤔 {}  🙁 {}  🔇 {}'.format(self.progress, self.total, self.killed_mutants, self.surviving_mutants_timeout, self.suspicious_mutants, self.surviving_mutants, self.skipped))
+        print_status('{}/{}  🎉 {}  ⏰ {}  🤔 {}  🙁 {}  ❓ {}  ❓➡🎉 {}  ❓➡🙁 {}  🔇 {}'.format(self.progress, self.total, self.killed_mutants, self.surviving_mutants_timeout, self.suspicious_mutants, self.surviving_mutants, self.unknown_mutants, self.unknown_to_killed_mutants, self.unknown_to_survived_mutants, self.skipped))
 
     def register(self, status):
         if status == BAD_SURVIVED:
@@ -934,6 +943,12 @@ class Progress(object):
             self.suspicious_mutants += 1
         elif status == SKIPPED:
             self.skipped += 1
+        elif status == UNKNOWN:
+            self.unknown_mutants += 1
+        elif status == UNKNOWN_TO_KILLED:
+            self.unknown_to_killed_mutants += 1
+        elif status == UNKNOWN_TO_SURVIVED:
+            self.unknown_to_survived_mutants += 1
         else:
             raise ValueError('Unknown status returned from run_mutation: {}'.format(status))
         self.progress += 1
