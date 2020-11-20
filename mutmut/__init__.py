@@ -794,9 +794,9 @@ def run_mutation(context: Context, callback) -> str:
 
             if config.with_reruns:
                 generated_coverage = read_coverage_data()
-                covered_lines = config.coverage_data.get(os.path.abspath(context.filename))
+                covered_lines = generated_coverage.get(os.path.abspath(context.filename))
                 context.current_line_index = context.mutation_id.line_number
-                covered = should_exclude(context, config, alt_covered_lines=covered_lines)
+                covered = not should_exclude(context, config, alt_covered_lines=covered_lines)
 
                 if not covered:
                     if reruns >= 16:
