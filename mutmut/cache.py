@@ -114,6 +114,12 @@ def get_unskipped_statuses():
 
 @init_db
 @db_session
+def get_mutant_ids():
+    return [m_id for m_id in select(m.id for m in Mutant)]
+
+
+@init_db
+@db_session
 def reset_run_status():
     MiscData.get(key='baseline_time_elapsed').delete()
     count = 0
