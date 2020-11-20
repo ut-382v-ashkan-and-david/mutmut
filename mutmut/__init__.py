@@ -785,27 +785,37 @@ def run_mutation(context: Context, callback) -> str:
             context=context
         )
         reruns = 0
-        while reruns <= 16:
+        while True:
             start = time()
             try:
                 survived = tests_pass(config=config, callback=callback)
             except TimeoutError:
                 return BAD_TIMEOUT
 
+            if config.with_reruns:
+                generated_coverage = read_coverage_data()
+                covered_lines = config.coverage_data.get(os.path.abspath(context.filename))
+                context.current_line_index = context.mutation_id.line_number
+                covered = should_exclude(context, config, alt_covered_lines=covered_lines)
+
+                if not covered:
+                    if reruns >= 16:
+                        return UNKNOWN
+                    reruns += 1
+                    continue
+
+                if reruns != 0:
+                    return UNKNOWN_TO_SURVIVED if survived else UNKNOWN_TO_KILLED
+
             time_elapsed = time() - start
             if not survived and time_elapsed > config.test_time_base + (config.baseline_time_elapsed * config.test_time_multipler):
                 return OK_SUSPICIOUS
-
-            if 
-            generated_coverage = read_coverage_data()
-            cove
 
             if survived:
                 return BAD_SURVIVED
             else:
                 return OK_KILLED
 
-            reruns += 1
     except SkipException:
         return SKIPPED
 

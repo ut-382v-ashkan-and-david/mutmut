@@ -90,7 +90,7 @@ DEFAULT_RUNNER = 'python -m pytest -x --assert=plain'
 @click.option('--paths-to-exclude', type=click.STRING, required=False)
 @click.option('--backup/--no-backup', default=False)
 @click.option('--runner')
-@click.option('--use-coverage', is_flag=True, default=False)
+@click.option('--use-coverage', type=click.STRING)
 @click.option('--use-patch-file', help='Only mutate lines added/changed in the given patch file')
 @click.option('--tests-dir')
 @click.option('-m', '--test-time-multiplier', default=2.0, type=float)
@@ -203,9 +203,6 @@ def main(command, argument, argument2, paths_to_mutate, backup, runner, tests_di
         print(get_unified_diff(argument, dict_synonyms))
         return 0
 
-    if use_coverage and not exists('.coverage'):
-        raise FileNotFoundError('No .coverage file found. You must generate a coverage file to use this feature.')
-
     if command == 'results':
         print_result_cache()
         return 0
@@ -293,7 +290,7 @@ Legend for output:
     if use_coverage or use_patch_file:
         covered_lines_by_filename = {}
         if use_coverage:
-            coverage_data = read_coverage_data()
+            coverage_data = read_coverage_data(path=use_coverage)
             check_coverage_data_filepaths(coverage_data)
         else:
             assert use_patch_file
